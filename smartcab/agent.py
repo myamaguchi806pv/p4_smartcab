@@ -23,7 +23,7 @@ class LearningAgent(Agent):
         self.previous_state = None
         self.previous_action = None
         self.previous_reward = 0.0
-        self.alpha=0.1 # learning rate
+        self.alpha=1.0 # learning rate
         self.gamma=0.1 # discount factor
 
 
@@ -38,7 +38,7 @@ class LearningAgent(Agent):
         deadline = self.env.get_deadline(self)
 
         # TODO: Update state
-        self.state = calcState(inputs, self.next_waypoint)
+        self.state = self.calcState(inputs, self.next_waypoint)
         # print 'Update State'
         # print self.state
 
@@ -50,14 +50,14 @@ class LearningAgent(Agent):
         # action = self.RandomChoice()
         action = self.greedyChoice(self.state)
         # action = self.epsilonGreedyChoice(self.state, 0.5)
-        # action = self.softmaxChoice(self.state, tau= 0.01)
+        # action = self.softmaxChoice(self.state, tau= 1.0)
 
         # Execute action and get reward
         reward = self.env.act(self, action)
 
         # TODO: Learn policy based on state, action, reward
 
-        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, action, reward)  # [debug]
+        # print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, action, reward)  # [debug]
 
         # record state, action and reward to update Q value in next step
         self.previous_state = self.state
@@ -146,6 +146,13 @@ class LearningAgent(Agent):
             if random_value < sum(weight.values()[:i+1]):
                 return weight.keys()[i]
 
+    def calcState(self, inputs, next_waypoint):
+        # print "This is inputs: {}".format(str(inputs)) #{'light': 'red', 'oncoming': 'left', 'right': None, 'left': None}
+
+        # make state from available directions and next waypoint
+        state = {'light': inputs["light"], 'oncoming':inputs["oncoming"], 'right':inputs["right"],'left':inputs["left"], 'next_waypoint':next_waypoint}
+        return state
+
 
 
 def run():
@@ -159,19 +166,13 @@ def run():
 
     # Now simulate it
     # sim = Simulator(e, update_delay=0.1, display=True)  # create simulator (uses pygame when display=True, if available)
-    sim = Simulator(e, update_delay=0.001, display=False)  # create simulator (uses pygame when display=True, if available)
+    # sim = Simulator(e, update_delay=0.001, display=False)
+    sim = Simulator(e, update_delay=0.001, display=True, live_plot=True)
 
     # NOTE: To speed up simulation, reduce update_delay and/or set display=False
 
     sim.run(n_trials=100)  # run for a specified number of trials
     # NOTE: To quit midway, press Esc or close pygame window, or hit Ctrl+C on the command-line
-
-def calcState(inputs, next_waypoint):
-    # print "This is inputs: {}".format(str(inputs)) #{'light': 'red', 'oncoming': 'left', 'right': None, 'left': None}
-
-    # make state from available directions and next waypoint
-    state = {'light': inputs["light"], 'oncoming':inputs["oncoming"], 'right':inputs["right"],'left':inputs["left"], 'next_waypoint':next_waypoint}
-    return state
 
 
 if __name__ == '__main__':
